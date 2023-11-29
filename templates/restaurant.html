@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block cssFiles %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/restaurant.css') }}">
+{% endblock %}
+
+
+
+
+{% block jsFiles %}
+<script src="{{url_for('static', filename='js/restaurant.js')}}"></script>
+{% endblock %}
+
+{% block mainContent %}
+<div id="main-content">
+  
+    <div id="restaurant-info">
+        <h3 > Restaurant Information</h3>
+        <h4 id="restaurant-info-name"> </h4>
+        <img id="restaurant-info-picture" src="" alt="">
+        <p class="body"id="restaurant-info-time"></span>
+            <div id="restaurant-info-time">
+                <p class="body bold">Restaurant Open Time:</p>
+                <br>
+                <p class="content"></p>
+                <br>
+            </div>
+        <div id="restaurant-info-description">
+            <p class="body bold">Restaurant Description:</p>
+            <br>
+            <p class="content"></p>
+            <br>
+        </div>
+
+        <div id="restaurant-info-address">
+            <p class="body bold">Restaurant Address：</p>
+            <br>
+            <p class="content"></p>
+            <br>
+        </div>
+
+        <div id="restaurant-info-zipcode">
+            <p class="body bold">Zip Code：</p>
+            <br>
+            <p class="content"></p>
+            <br>
+        </div>
+        <div id="restaurant-info-radius">
+            <p class="body bold">Radius:</p>
+            <br>
+            <p class="content"></p>
+            <br>
+        </div>
+    </div>
+
+<hr>
+    <div id="restaurant-menu">
+        <h3 > Restaurant Menu</h3>
+        <div id="restaurant-menu-item">
+            <button id="add_item_to_shopping_cart">Add Order</button>
+        </div>
+        
+    </div>
+
+
+</div>
+{% endblock %}

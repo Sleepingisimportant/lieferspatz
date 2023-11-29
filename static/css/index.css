@@ -1,0 +1,305 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100;300;400;500;700;900&display=swap');
+@import url("style_guide.css");
+@import url("standard.css");
+
+
+
+
+.banner {
+    width: 100%;
+    display: flex;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+}
+
+.banner img {
+    object-fit: cover;
+    width: 100%;
+    height: 480px;
+}
+
+.banner-body {
+    width: 1200px;
+    position: absolute;
+    top: 200px;
+    padding-left: 15px;
+}
+
+.banner-content {
+    position: relative;
+    color: white;
+}
+
+
+
+
+
+#banner-searchbar input {
+    Width: 400px;
+    Height: 44px;
+    font-weight: 700;
+    Size: 16px;
+    color: #757575;
+    border-radius: 3px 0 0 3px;
+    border-width: 0;
+    padding-left: 15px;
+    margin: 0;
+    box-shadow: 5px 3px 3px rgba(0, 0, 0, 0.1);
+
+
+
+}
+
+#banner-searchbar button {
+    Width: 60px;
+    Height: 46px;
+    margin: 0px;
+
+    border-radius: 0 3px 3px 0;
+    border-width: 0;
+    background-color: #448899;
+    color: white;
+    box-shadow: 5px 3px 3px rgba(0, 0, 0, 0.1);
+
+
+}
+
+#banner-searchbar i {
+    font-size: 30px !important;
+    vertical-align: middle;
+}
+
+#banner-searchbar-category-list {
+    background-color: white;
+    width: 400px;
+    box-shadow: 5px 3px 3px rgba(0, 0, 0, 0.1);
+    z-index: 2;
+    position: relative;
+    top: 4px;
+    border-radius: 3px;
+    display: flex;
+    flex-wrap: wrap;
+
+}
+
+#banner-searchbar-category-list a {
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20.27px;
+    width: 120px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1 0 21%;
+    margin: 15px;
+    position: relative;
+
+}
+
+#banner-searchbar-category-list a:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+
+
+#main-content {
+    width: 1200px;
+    overflow: hidden;
+    padding: 50px auto 50px auto;
+    margin: 30px auto 150px auto;
+}
+
+
+
+#main-content-default {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    margin-right: auto;
+    margin-left: auto;
+    justify-content: center;
+    align-content: flex-start;
+}
+
+
+.post-default {
+    width: 270px;
+    height: 242px;
+    text-align: center;
+    flex: 1 0 21%;
+    margin: 15px;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+
+}
+
+.post-default-image{
+
+    width: 270px;
+    height: 200px;
+    position: relative;
+    overflow: hidden;
+}
+
+
+.post-default img {
+
+    border-radius: 5px 5px 0 0;
+    position: absolute;
+    width: 100%;
+    /* height: 100%; */
+    left: 0px;
+    top: 0px;
+
+
+}
+
+.post-default-title {
+    position: absolute;
+    width: 270px;
+    height: 50px;
+    left: 0px;
+    bottom: 40px;
+    background: rgba(0, 0, 0, 0.6);
+
+}
+
+.post-default-title p {
+    position: absolute;
+    width: 250px;
+    height: 20px;
+    margin: 10px;
+    line-height: 5px;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 13px;
+    display: flex;
+    align-items: center;
+    color: #FFFFFF;
+}
+
+
+.post-default-subtitle {
+    padding: 10px;
+    position: absolute;
+    width: 248px;
+    left: 0px;
+ 
+    bottom: 0;
+    height: 20px;
+
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 5px 5px;
+    background: #FFFFFF;
+    text-align: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+
+}
+
+.post-default-subtitle a {
+
+    font-style: normal;
+    font-weight: 500;
+    font-size: 16px;
+    line-height: 13px;
+    display: flex;
+    align-items: center;
+    text-align: right;
+    color: #757575;
+    display: inline-block;
+
+}
+
+#result-none-content {
+    height: 20vh;
+    display: flex;
+    align-items: center;
+    padding: 30px;
+}
+
+
+
+
+
+
+@media screen and (max-width:1200px) {
+    #main-content {
+        width: 90%;
+        padding: 0;
+    }
+
+
+
+    .banner {
+        justify-content: flex-start;
+    }
+
+    .banner-body {
+        width: 600px;
+        margin-left: 55px;
+
+    }
+
+
+    #banner-searchbar input {
+        width: 250px;
+    }
+
+    #banner-searchbar-category-list {
+        width: 250px;
+
+
+    }
+
+    .post-default {
+        flex: 1 0 45%;
+    }
+
+}
+
+
+@media screen and (max-width:600px) {
+
+
+    #main-content {
+        width: 100%;
+
+
+    }
+
+    .banner {
+        justify-content: center;
+    }
+
+    .banner-body {
+        width: 300px;
+        margin-left: 0px;
+
+
+    }
+
+    #banner-searchbar input {
+        width: 210px;
+    }
+
+    #banner-searchbar button {
+        width: 50px;
+    }
+
+    .post-default {
+        flex: 1 0 100%;
+    }
+
+    #banner-searchbar-category-list {
+        width: 230px;
+
+
+    }
+
+}

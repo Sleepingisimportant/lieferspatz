@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="{{url_for('static', filename='js/standard.js')}}"></script>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="data:,">
+
+    <title>Lieferspatz</title>
+
+
+
+    {% block cssFiles %}{% endblock %}
+
+ 
+
+
+
+
+</head>
+
+<body>
+
+
+    <nav id='site-navigation' role='navigation'>
+        <div id="nav-body">
+            <div class="" id="menu-title" onclick="nav_to_homepage()">
+                Lieferspatz
+            </div>
+            <div id="menu-content-container">
+                <ul>
+                    <li id="manage-link" onclick="nav_to_manage()" class="body bold"></li>
+                    <li id="authentication-registration-link" class="body bold"></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+  
+
+
+    {% block mainContent %}{% endblock %}
+
+    {% block jsFiles %}
+    <script src="{{url_for('static', filename='js/standard.js')}}"></script>
+    {% endblock %}
+    <footer>
+        <div class="footer-content"></div>
+        <span class="bold body">COPYRIGHT ⓒ 2023 Lieferspatz</span>
+    </footer>
+
+
+
+
+</body>
+
+</html>

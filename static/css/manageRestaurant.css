@@ -1,0 +1,9 @@
+@import url("style_guide.css");
+@import url("standard.css");
+
+#main-content {
+    width: 1200px;
+    overflow: hidden;
+    margin: 100px auto 150px auto;
+    justify-content: space-between;
+}

@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block cssFiles %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/manageRestaurant.css') }}">
+{% endblock %}
+
+
+
+
+{% block jsFiles %}
+<script src="{{url_for('static', filename='js/manageRestaurant.js')}}"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+{% endblock %}
+
+{% block mainContent %}
+<div id="main-content">
+    <h3 > Restaurant Information</h3>
+    <div id="restaurant-info">
+        <h4 id="restaurant-info-name"> </h4>
+        <img id="restaurant-info-pic" src="" alt="" width="300px" >
+        <div id="restaurant-info-time">
+            <p class="body bold">Restaurant Open Time:</p>
+            <br>
+            <p class="content"></p>
+            <br>
+        </div>
+        <div id="restaurant-info-description">
+            <p class="body bold">Restaurant Description:</p>
+            <br>
+            <p class="content"></p>
+            <br>
+        </div>
+
+        <div id="restaurant-info-address">
+            <p class="body bold">Restaurant Address：</p>
+            <br>
+            <p class="content"></p>
+            <br>
+        </div>
+
+        <div id="restaurant-info-zipcode">
+            <p class="body bold">Zip Code：</p>
+            <br>
+            <p class="content"></p>
+            <br>
+        </div>
+        <div id="restaurant-info-radius">
+            <p class="body bold">Radius:</p>
+            <br>
+            <p class="content"></p>
+            <br>
+        </div>
+    </div>
+
+<hr>
+    <div id="restaurant-menu">
+        <h3 > Restaurant Menu</h3>
+        <div id="restaurant-menu-item">
+            
+        </div>
+        <form  onsubmit="create_menu_item();return false">
+            <h4>Create Menu</h4>
+            <input type="text" class="body" name="itemName" id="create-item-name" placeholder="Item name.." required><br>
+            <input type="text" class="body" name="itemDescription" id="create-item-description" placeholder="Item description.." required><br>
+            <input type="text" class="body" name="itemPrice" id="create-item-price" placeholder="Item price.." required><br>
+            <button id="create-manu-item" type="submit"  class="btn">Add Item</button>
+        <form>
+    </div>
+<hr>
+
+    <div id="restaurant-order">
+        <h3 > Restaurant Order</h3>
+
+    </div>
+
+</div>
+{% endblock %}
+
+

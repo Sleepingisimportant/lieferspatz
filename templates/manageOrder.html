@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block cssFiles %}
+<link rel="stylesheet" type="text/css" href="{{ url_for('static',filename='css/manageOrder.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+{% endblock %}
+
+
+{% block jsFiles %}
+<script src="{{url_for('static', filename='js/manageOrder.js')}}"></script>
+
+
+{% endblock %}
+
+{% block mainContent %}
+<div id="main-content">
+    <h3 >Manage Order</h3>
+
+    <div id="order-unsent">
+        <h4>Shopping Cart</h4>
+        
+        
+
+    </div>
+    <hr>
+
+    <div id="order-sent">
+        <h4 >Track Order</h4>
+       
+    </div>
+
+
+</div>
+{% endblock %}
