@@ -1,5 +1,5 @@
 const restaurantId = getRestaurantId();
-let userId;
+let customerId;
 let restaurantName;
 
 function getRestaurantId() {
@@ -27,7 +27,7 @@ document.addEventListener("DOMContentLoaded", async function (event) {
   } else if (data["data"]["role"] != "customer") {
     window.location.replace("/");
   } else {
-    userId = data["data"]["id"];
+    customerId = data["data"]["id"];
     getRestaurantInfo();
   }
 });
@@ -54,6 +54,7 @@ async function getRestaurantInfo() {
   closeTime = data["closeTime"];
   description = data["description"];
   picture = data["picture"];
+  radius = data["radius"];
 
   document.querySelector("#restaurant-info-name").innerText = restaurantName;
   document.querySelector("#restaurant-info-picture").src = picture;
@@ -67,11 +68,10 @@ async function getRestaurantInfo() {
     address;
   document.querySelector("#restaurant-info-zipcode .content").innerText =
     zipCode;
+    document.querySelector("#restaurant-info-radius .content").innerText =
+    radius;
 
-  for (i = parseInt(zipCode) - 2; i <= parseInt(zipCode) + 2; i++) {
-    document.querySelector("#restaurant-info-radius .content").innerText +=
-      i + "\n";
-  }
+  
 
   getMenu(restaurantId);
 }
@@ -166,7 +166,7 @@ async function add_item_to_shopping_cart(
       "Content-Type": "application/json ; charset=UTF-8",
     },
     body: JSON.stringify({
-      userId: userId,
+      customerId: customerId,
       restaurantId: restaurantId,
       itemId: itemId,
       itemName: itemName,

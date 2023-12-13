@@ -50,11 +50,9 @@ async function getRestaurantInfo() {
   picture = data["picture"];
   allowedZipCode = data["allowedZipCode"];
   restaurantId = data["restaurantId"];
-  console.log(restaurantId);
   document.getElementById("restaurant-info-name").innerText = restaurantName;
   document.getElementById("restaurant-info-pic").src = picture;
   document.getElementById("restaurant-info-pic").alt = restaurantName;
-
 
   document.querySelector("#restaurant-info-time .content").innerText =
     openTime + ` to ` + closeTime;
@@ -64,8 +62,7 @@ async function getRestaurantInfo() {
     address;
   document.querySelector("#restaurant-info-zipcode .content").innerText =
     zipCode;
-  document.querySelector("#restaurant-info-radius .content").innerText =
-    allowedZipCode;
+  document.querySelector("#restaurant-info-radius .content").innerText = radius;
 
   getMenu(restaurantId);
 }
@@ -155,11 +152,12 @@ async function getRestaurantOrder(restaurantId) {
     })
     .catch((error) => console.warn(error));
 
-    console.log(data)
+  console.log(data);
   orderHistoryHtml = "";
 
   for (const orderId in data) {
-    orderHistoryHtml += generateOrderHTML(orderId, data[orderId]);
+    orderHistoryHtml =
+      generateOrderHTML(orderId, data[orderId]) + orderHistoryHtml;
   }
   document
     .querySelector("#restaurant-order")
@@ -167,50 +165,43 @@ async function getRestaurantOrder(restaurantId) {
 }
 
 function generateOrderHTML(orderId, orderData) {
-  console.log(orderData)
-  orderHTML=""
-  console.log(orderData.orderStatus)
-  if(orderData.orderStatus=="Created"){
-     orderHTML = `<div >
-     <p class="bold body" id=${orderId} }>Order Nr.: </p><p class=" body" style="color:#D35400;">#${orderId}</p><br>
-    <button name="${orderId}" class="delete" onclick=rejectOrder(this.name)>Reject</button>
-    <button name="${orderId}" class="confirm" onclick=confirmOrder(this.name)>Confirm</button><br>`;
-  }else if(orderData.orderStatus=="Rejected"){
-    orderHTML = `<div >
-    <p class="bold body" id=${orderId} }>Order Nr.: </p><p class=" body" style="color:#D35400;">#${orderId}</p><br>`;
-  }else if(orderData.orderStatus=="Confirmed"){
-    orderHTML = `<div >
-    <p class="bold body" id=${orderId} }>Order Nr.: </p><p class=" body" style="color:#D35400;">#${orderId}</p><br>
-    <button name="${orderId}" class="deliver" onclick=deliverOrder(this.name)>Deliver</button><br>`;
-  }else if(orderData.orderStatus=="Delivered"){
-    orderHTML =
-    `<div >
-    <p class="bold body" id=${orderId} }>Order Nr.: </p><p class=" body" style="color:#D35400;">#${orderId}</p> <br>`;
-  }
+  orderHTML = `<div>
+  <p class="bold body" id=${orderId} }>Order Nr.: </p><p class=" body" style="color:blue;">${orderId}</p><br>
+  <p class="bold body"  }>Order Time: </p><p class=" body" style="color:grey;">${orderData.createTime}</p><br>
+  <p class="bold body">Customer Name: </p><p class="body">${orderData.customerName}</p><br>
+    <p class="bold body">Order Item(s):</p><br>`;
 
-  orderHTML+=`<p class="bold body">Customer Name: </p><p class="body">${orderData.customerName}</p><br>
-    <p class="bold body">Order Item(s):</p><br>`
-  
-
-  items=Object.values(orderData.item)
-  console.log(items)
+  items = Object.values(orderData.item);
   items.forEach((item) => {
-    orderComment=item.orderComment
-    if (orderComment){
+    orderComment = item.orderComment;
+    if (orderComment) {
       orderHTML += `<p class=" body">${item.itemName} ${item.itemAmount} pc(s)</p> 
-      <p class="bold body" style="color:#0E6655;"> Customer Comment:</p><p class="body" style="color:#0E6655;">${item.orderComment}</p><br>`;
-    }else{
+      <p class="bold body" style="color:blue;"> Customer Comment:</p><p class="body" style="color:blue;">${item.orderComment}</p><br>`;
+    } else {
       orderHTML += `<p class=" body">${item.itemName} ${item.itemAmount} pc(s)</p> <br>`;
     }
-   
   });
 
   orderHTML += ` 
   <p class="bold body">Order Status: </p>
   <p class="body" style="color:red;">${orderData.orderStatus}</p><br>
-  
-  </div><br><br>`;
-
+  </div>`;
+  if (orderData.orderStatus == "Created") {
+    orderHTML += `<button name="${orderId}" class="delete" onclick=rejectOrder(this.name)>Reject</button>
+   <button name="${orderId}" class="confirm" onclick=confirmOrder(this.name)>Confirm</button><br>`;
+  } else if (orderData.orderStatus == "Confirmed") {
+    orderHTML += `<button name="${orderId}" class="deliver" onclick=deliverOrder(this.name)>Deliver</button><br>`;
+  }
+  orderHTML += `
+    </div>
+    <br>
+    <br>
+    <hr style=" width: 200px; 
+    border: none;
+    margin: 0 0 0 0;
+    height: 1px;
+    background-color: grey;"> 
+    <br><br>`;
   return orderHTML;
 }
 
@@ -231,7 +222,6 @@ async function deleteMenu(itemId) {
 }
 
 async function rejectOrder(orderId) {
-
   const url = "/api/order/reject";
   let data = await fetch(url, {
     method: "POST",
@@ -249,11 +239,10 @@ async function rejectOrder(orderId) {
     })
     .catch((error) => console.warn(error));
 
-
   window.location.reload(true);
 }
 
-async function confirmOrder(orderId){
+async function confirmOrder(orderId) {
   const url = "/api/order/confirm";
   let data = await fetch(url, {
     method: "POST",
@@ -271,28 +260,26 @@ async function confirmOrder(orderId){
     })
     .catch((error) => console.warn(error));
 
-
   window.location.reload(true);
 }
 
-async function deliverOrder(orderId){
-    const url = "/api/order/deliver";
-    let data = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json ; charset=UTF-8",
-      },
-      body: JSON.stringify({
-        orderId: orderId,
-      }),
+async function deliverOrder(orderId) {
+  const url = "/api/order/deliver";
+  let data = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json ; charset=UTF-8",
+    },
+    body: JSON.stringify({
+      orderId: orderId,
+    }),
+  })
+    .then((response) => response.json())
+    .then((responseData) => {
+      console.log(responseData);
+      return responseData;
     })
-      .then((response) => response.json())
-      .then((responseData) => {
-        console.log(responseData);
-        return responseData;
-      })
-      .catch((error) => console.warn(error));
-  
-  
-    window.location.reload(true);
+    .catch((error) => console.warn(error));
+
+  window.location.reload(true);
 }

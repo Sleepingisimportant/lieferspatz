@@ -1,4 +1,4 @@
-userLogged=false;
+userLogged = false;
 let userData;
 document.addEventListener("DOMContentLoaded", async function (event) {
   const url = "/api/user/auth";
@@ -15,11 +15,10 @@ document.addEventListener("DOMContentLoaded", async function (event) {
     })
     .catch((error) => console.warn(error));
 
-
   if (data["data"] != null) {
-    userLogged=true;
-    userData=data;
-    
+    userLogged = true;
+    userData = data;
+
     document.getElementById("authentication-registration-link").innerText = "";
     document.getElementById("authentication-registration-link").innerText =
       "Log Out";
@@ -42,7 +41,6 @@ document.addEventListener("DOMContentLoaded", async function (event) {
       .setAttribute("onClick", "popup_user_login_box()");
   }
 });
-
 
 function nav_to_homepage() {
   window.location.replace("/");
@@ -93,14 +91,39 @@ function popup_user_login_box(toPageLocation = "/") {
     `  <div id="dimmed-background">
   <div id="login-registration-box">
   <div id="icon-close">&times;</div>
-    <form  onsubmit="user_login('` +
-    toPageLocation +
-    `');return false">
+    <form  onsubmit="user_login('` + toPageLocation + `', 'customer');return false">
+      <h3 style="color:#448899;">Customer</h3>
       <h3>LOG IN</h3>
       <input type="text" class="body" name="name" id="login-registration-box-name" placeholder="Name" required><br>
       <input type="password" class="body" name="password" id="login-registration-box-password" placeholder="Password" required><br>
       <button id="login-box-button" type="submit" class="btn">Confirm</button>
       <form>
+    <div class="body">Restaurant owner? <a onclick="popup_restaurant_login_box()">Sign in</a></div>
+    <div class="body">No account? <a onclick="popup_customer_registration_box()">Sign up</a></div>
+  </div>
+  </div>
+`;
+
+  document.body.insertAdjacentHTML("afterbegin", insertHTML);
+  disableScrolling();
+}
+function popup_restaurant_login_box(toPageLocation = "/") {
+  if (document.getElementById("dimmed-background")) {
+    document.getElementById("dimmed-background").remove();
+  }
+
+  insertHTML =
+    `  <div id="dimmed-background">
+  <div id="login-registration-box">
+  <div id="icon-close">&times;</div>
+    <form  onsubmit="user_login('` + toPageLocation +`', 'restaurant');return false">
+    <h3 style="color:#448899;">Restaurant Owner</h3>
+      <h3>LOG IN</h3>
+      <input type="text" class="body" name="name" id="login-registration-box-name" placeholder="Name" required><br>
+      <input type="password" class="body" name="password" id="login-registration-box-password" placeholder="Password" required><br>
+      <button id="login-box-button" type="submit" class="btn">Confirm</button>
+      <form>
+    <div class="body">Customer? <a onclick="popup_user_login_box()">Sign in</a></div>
     <div class="body">No account? <a onclick="popup_customer_registration_box()">Sign up</a></div>
   </div>
   </div>
@@ -195,6 +218,7 @@ function popup_restaurant_registration_box() {
       <input type="text" class="body" name="name" id="login-registration-box-name-restaurant" placeholder="Name" required><br>
       <input type="password" class="body" name="password" id="login-registration-box-password-restaurant" placeholder="Create Password" required><br>
       <input type="text" class="body" name="zipCode" id="login-registration-box-zipCode-restaurant" placeholder="Zip Code" required><br>
+      <input type="text" class="body" name="radius" id="login-registration-box-radius-restaurant" placeholder="Deliver to..." required><br>
       <input type="text" class="body" name="address" id="login-registration-box-address-restaurant" placeholder="Address" required><br>
       <input type="text" class="body" name="openTime" id="login-registration-box-openTime-restaurant" placeholder="openTime" required><br>
       <input type="text" class="body" name="closeTime" id="login-registration-box-closeTime-restaurant" placeholder="closeTime" required><br>
@@ -223,6 +247,9 @@ async function restaurant_registration() {
   zipCode = document.getElementById(
     "login-registration-box-zipCode-restaurant"
   ).value;
+  radius = document.getElementById(
+    "login-registration-box-radius-restaurant"
+  ).value;
   address = document.getElementById(
     "login-registration-box-address-restaurant"
   ).value;
@@ -249,6 +276,7 @@ async function restaurant_registration() {
       restaurantName: restaurantName,
       restaurantPassword: password,
       restaurantZipCode: zipCode,
+      restaurantRadius: radius,
       restaurantAddress: address,
       restaurantOpenTime: openTime,
       restaurantCloseTime: closeTime,
@@ -278,6 +306,8 @@ async function restaurant_registration() {
     ).value = "";
     document.getElementById("login-registration-box-zipCode-restaurant").value =
       "";
+      document.getElementById("login-registration-box-radius-restaurant").value =
+      "";
     document.getElementById("login-registration-box-address-restaurant").value =
       "";
     document.getElementById(
@@ -302,7 +332,7 @@ async function restaurant_registration() {
   }
 }
 
-async function user_login(toPageLocation) {
+async function user_login(toPageLocation, role) {
   username = document.getElementById("login-registration-box-name").value;
   password = document.getElementById("login-registration-box-password").value;
 
@@ -316,6 +346,7 @@ async function user_login(toPageLocation) {
     body: JSON.stringify({
       name: username,
       password: password,
+      role:role,
     }),
   })
     .then((response) => response.json())

@@ -1,3 +1,6 @@
+# zip code should be provided by the restaurant owner while account registration.
+
+
 import sqlite3
 from flask import *
 import requests
@@ -89,15 +92,8 @@ def api_register_customer():
         zipCode = request_params["zipCode"]
 
         cursor.execute(
-            "INSERT INTO user (name,password,role) VALUES (?,?,?)",
-            (name, password, "customer"),
-        )
-        userId = cursor.lastrowid
-        print("userId: " + str(userId))
-
-        cursor.execute(
-            "INSERT INTO customer (userId,address,zipCode) VALUES (?,?,?)",
-            (userId, address, zipCode),
+            "INSERT INTO customer (name,password,address,zipCode) VALUES (?,?,?,?)",
+            (name, password, address, zipCode),
         )
 
         cnx.commit()
@@ -123,41 +119,26 @@ def api_register_restaurant():
         restaurantPassword = request_params["restaurantPassword"]
         restaurantAddress = request_params["restaurantAddress"]
         restaurantZipCode = request_params["restaurantZipCode"]
+        restaurantRadius = request_params["restaurantRadius"]
         restaurantOpenTime = request_params["restaurantOpenTime"]
         restaurantCloseTime = request_params["restaurantCloseTime"]
         restaurantDescription = request_params["restaurantDescription"]
         restaurantPicture = request_params["restaurantPicture"]
 
         cursor.execute(
-            "INSERT INTO user (name,password,role) VALUES (?,?,?)",
-            (restaurantName, restaurantPassword, "restaurant"),
-        )
-        userId = cursor.lastrowid
-
-        cursor.execute(
-            "INSERT INTO restaurant (userId ,restaurantAddress,restaurantZipCode,restaurantOpenTime,restaurantCloseTime,restaurantDescription,restaurantPicture) VALUES (?, ?, ?,?,?,?,?)",
+            "INSERT INTO restaurant ( name,password, restaurantAddress,restaurantZipCode,restaurantRadius,restaurantOpenTime,restaurantCloseTime,restaurantDescription,restaurantPicture) VALUES (?,?,?,?,?,?,?,?,?)",
             (
-                userId,
+                restaurantName,
+                restaurantPassword,
                 restaurantAddress,
                 restaurantZipCode,
+                restaurantRadius,
                 restaurantOpenTime,
                 restaurantCloseTime,
                 restaurantDescription,
                 restaurantPicture,
             ),
         )
-        restaurantId = cursor.lastrowid
-
-        zipCode = int(restaurantZipCode)
-
-        for azc in range(zipCode - 2, zipCode + 3):
-            cursor.execute(
-                "INSERT INTO radius (restaurantId, allowedZipCode) VALUES (?, ?)",
-                (
-                    restaurantId,
-                    azc,
-                ),
-            )
 
         cnx.commit()
 
@@ -171,40 +152,44 @@ def api_register_restaurant():
         cnx.close()
 
 
-@app.route("/api/restaurant/show/<userId>", methods=["GET"])
-def api_show_allowed_restaurant(userId):
+@app.route("/api/restaurant/show/<customerId>", methods=["GET"])
+def api_show_allowed_restaurant(customerId):
     try:
         cnx = get_db_connection()
         cursor = cnx.cursor()
 
         json = {}
         i = 0
-        zipCode = cursor.execute(
-            "SELECT zipCode FROM customer WHERE userId=?", (userId,)
+        zipCodeData = cursor.execute(
+            "SELECT zipCode FROM customer WHERE customerId=?", (customerId,)
         ).fetchall()
-        for row in zipCode:
+
+        for row in zipCodeData:
             userZipCode = row[0]
             data = cursor.execute(
-                "SELECT restaurantId FROM radius WHERE allowedZipCode=?", (userZipCode,)
+                """SELECT *
+                FROM restaurant
+                WHERE restaurantRadius LIKE ?;""",
+                ("%" + userZipCode + "%",),
             ).fetchall()
+            
 
             for d in data:
                 restaurantId = d[0]
                 restaurantData = cursor.execute(
                     """
                     SELECT
-                        user.name,
+                        restaurant.name,
                         restaurant.restaurantAddress,
                         restaurant.restaurantZipCode,
                         restaurant.restaurantOpenTime,
                         restaurant.restaurantCloseTime,
                         restaurant.restaurantDescription,
                         restaurant.restaurantPicture,
-                        restaurant.restaurantId
+                        restaurant.restaurantId,
+                        restaurant.restaurantRadius
                     FROM
                         restaurant
-                    INNER JOIN
-                        user ON restaurant.userId = user.userId
                     WHERE
                         restaurant.restaurantId = ?
                 """,
@@ -229,6 +214,7 @@ def api_show_allowed_restaurant(userId):
                             "restaurantDescription": row[5],
                             "restaurantPicture": row[6],
                             "restaurantId": row[7],
+                            "restaurantRadius": row[8],
                         }
                         i = i + 1
 
@@ -237,7 +223,7 @@ def api_show_allowed_restaurant(userId):
         return json
 
     except sqlite3.Error as e:
-        print(f"SQLite error: {e}")
+        print(f"SQLite error: {str(e)}")
         return error_messsage("Fail."), 400
 
     finally:
@@ -303,19 +289,16 @@ def api_create_menu():
     finally:
         cnx.close()
 
+
 @app.route("/api/menu/delete/<itemId>", methods=["DELETE"])
 def api_delete_menu(itemId):
-  
     try:
-       
         cnx = get_db_connection()
         cursor = cnx.cursor()
 
         cursor.execute(
             "DELETE FROM menu WHERE itemId= ?",
-            (
-                itemId,
-            ),
+            (itemId,),
         )
 
         cnx.commit()
@@ -339,14 +322,24 @@ def api_login_user():
         request_params = request.get_json()
         name = request_params["name"]
         password = request_params["password"]
+        role = request_params["role"]
 
-        data = cursor.execute(
-            "SELECT * FROM user WHERE name = ? AND password = ?",
-            (
-                name,
-                password,
-            ),
-        ).fetchall()
+        if role == "customer":
+            data = cursor.execute(
+                "SELECT * FROM customer WHERE name = ? AND password = ?",
+                (
+                    name,
+                    password,
+                ),
+            ).fetchall()
+        else:
+            data = cursor.execute(
+                "SELECT * FROM restaurant WHERE name = ? AND password = ?",
+                (
+                    name,
+                    password,
+                ),
+            ).fetchall()
 
         len_data = len(data)
         if len_data == 0:
@@ -358,7 +351,7 @@ def api_login_user():
                     {
                         "id": user[0],
                         "name": user[1],
-                        "role": user[3],
+                        "role": role,
                         "expiration": str(
                             datetime.utcnow() + timedelta(seconds=604800)
                         ),
@@ -428,7 +421,7 @@ def api_get_manage_restaurant():
     try:
         _payload = jwt.decode(token, app.secret_key, algorithms="HS256")
 
-        userId = int(_payload["id"])
+        restaurantId = int(_payload["id"])
 
         cnx = get_db_connection()
         cursor = cnx.cursor()
@@ -436,22 +429,21 @@ def api_get_manage_restaurant():
         data = cursor.execute(
             """
     SELECT
-        user.name,
+        restaurant.name,
         restaurant.restaurantAddress,
         restaurant.restaurantZipCode,
         restaurant.restaurantOpenTime,
         restaurant.restaurantCloseTime,
         restaurant.restaurantDescription,
         restaurant.restaurantPicture,
-        restaurant.restaurantId
+        restaurant.restaurantId,
+        restaurant.restaurantRadius
     FROM
         restaurant
-    INNER JOIN
-        user ON restaurant.userId = user.userId
     WHERE
-        restaurant.userId = ?
+        restaurant.restaurantId = ?
 """,
-            (userId,),
+            (restaurantId,),
         ).fetchall()
 
         json = {}
@@ -465,19 +457,21 @@ def api_get_manage_restaurant():
                 "description": d[5],
                 "picture": d[6],
                 "restaurantId": d[7],
+                "radius": d[8],
             }
+            print(d[8])
 
-        restaurantId = json["restaurantId"]
+        # restaurantId = json["restaurantId"]
 
-        radius = cursor.execute(
-            "SELECT allowedZipCode FROM radius WHERE radius.restaurantId =?",
-            (restaurantId,),
-        ).fetchall()
-        allowedZipCodeList = []
-        for r in radius:
-            allowedZipCodeList.append(r[0])
+        # radius = cursor.execute(
+        #     "SELECT allowedZipCode FROM radius WHERE radius.restaurantId =?",
+        #     (restaurantId,),
+        # ).fetchall()
+        # allowedZipCodeList = []
+        # for r in radius:
+        #     allowedZipCodeList.append(r[0])
 
-        json["allowedZipCode"] = allowedZipCodeList
+        # json["allowedZipCode"] = allowedZipCodeList
 
         cnx.close()
 
@@ -510,18 +504,16 @@ def api_get_view_restaurant(restaurantId):
         restaurant.restaurantCloseTime,
         restaurant.restaurantDescription,
         restaurant.restaurantPicture,
-        user.name
+        restaurant.name,
+        restaurant.restaurantRadius
 
     FROM
         restaurant
-    INNER JOIN
-        user ON restaurant.userId = user.userId
     WHERE
         restaurant.restaurantId = ?
 """,
             (restaurantId,),
         ).fetchall()
-
         json = {}
         for d in data:
             json = {
@@ -532,12 +524,13 @@ def api_get_view_restaurant(restaurantId):
                 "description": d[4],
                 "picture": d[5],
                 "name": d[6],
+                "radius": d[7],
             }
 
-        menu = cursor.execute(
-            "SELECT itemName, itemDescription, itemPrice,itemId FROM menu WHERE menu.restaurantId =?",
-            (restaurantId,),
-        ).fetchall()
+        # menu = cursor.execute(
+        #     "SELECT itemName, itemDescription, itemPrice,itemId FROM menu WHERE menu.restaurantId =?",
+        #     (restaurantId,),
+        # ).fetchall()
 
         cnx.close()
 
@@ -563,7 +556,7 @@ def api_add_cart():
 
         request_params = request.get_json()
 
-        userId = request_params["userId"]
+        customerId = request_params["customerId"]
         restaurantId = request_params["restaurantId"]
         itemId = request_params["itemId"]
         itemName = request_params["itemName"]
@@ -572,9 +565,9 @@ def api_add_cart():
         restaurantName = request_params["restaurantName"]
 
         cursor.execute(
-            "INSERT INTO cart (userId, restaurantId,itemId,itemName,itemPrice,itemAmount,restaurantName) VALUES (?, ?, ?, ?, ?,?,?)",
+            "INSERT INTO cart (customerId, restaurantId,itemId,itemName,itemPrice,itemAmount,restaurantName) VALUES (?, ?, ?, ?, ?,?,?)",
             (
-                userId,
+                customerId,
                 restaurantId,
                 itemId,
                 itemName,
@@ -598,14 +591,14 @@ def api_cart_get():
         return error_messsage("Login first")
     try:
         _payload = jwt.decode(token, app.secret_key, algorithms="HS256")
-        userId = int(_payload["id"])
+        customerId = int(_payload["id"])
 
         cnx = get_db_connection()
         cursor = cnx.cursor()
 
         data = cursor.execute(
-            "SELECT  itemId, itemName, itemPrice, itemAmount, restaurantId, restaurantName FROM cart WHERE userId=? AND orderId IS NULL",
-            (userId,),
+            "SELECT  itemId, itemName, itemPrice, itemAmount, restaurantId, restaurantName FROM cart WHERE customerId=? AND orderId IS NULL",
+            (customerId,),
         ).fetchall()
 
         combined_data_list = listCartItems(data)
@@ -627,15 +620,15 @@ def api_delete_cart_item(itemId):
         return error_messsage("Login first")
     try:
         _payload = jwt.decode(token, app.secret_key, algorithms="HS256")
-        userId = int(_payload["id"])
+        customerId = int(_payload["id"])
 
         cnx = get_db_connection()
         cursor = cnx.cursor()
 
         cursor.execute(
-            "DELETE FROM cart WHERE userId= ? AND itemId=? AND orderId IS NULL",
+            "DELETE FROM cart WHERE customerId= ? AND itemId=? AND orderId IS NULL",
             (
-                userId,
+                customerId,
                 int(itemId),
             ),
         )
@@ -662,44 +655,45 @@ def api_create_order():
         itemIdCommentDic = request_params["itemIdComment"]
 
         _payload = jwt.decode(token, app.secret_key, algorithms="HS256")
-        userId = int(_payload["id"])
+        customerId = int(_payload["id"])
 
         cnx = get_db_connection()
         cursor = cnx.cursor()
         data = cursor.execute(
-            "SELECT  itemId, itemName, itemPrice, itemAmount, restaurantId, restaurantName FROM cart WHERE userId=? AND orderId IS NULL",
-            (userId,),
+            "SELECT  itemId, itemName, itemPrice, itemAmount, restaurantId, restaurantName FROM cart WHERE customerId=? AND orderId IS NULL",
+            (customerId,),
         ).fetchall()
 
-        combine_data_list = combineCartForOrder(data,itemIdCommentDic)
+        combine_data_list = combineCartForOrder(data, itemIdCommentDic)
 
         for entry in combine_data_list:
             item_total_prices = [item["totalPrice"] for item in entry["item"].values()]
             order_total_price = sum(item_total_prices)
-            restaurantId=entry["restaurantId"]
+            restaurantId = entry["restaurantId"]
+
+            currentTime = datetime.now().strftime("%H:%M:%S")
 
             cursor.execute(
-                "INSERT INTO createdOrder (userId, restaurantId, orderStatus, orderTotalPrice) VALUES (?, ?,?, ?)",
-                (userId, restaurantId,"Created", order_total_price),
+                "INSERT INTO createdOrder (customerId, restaurantId, orderStatus, orderTotalPrice, createTime) VALUES (?,?,?,?,?)",
+                (customerId, restaurantId, "Created", order_total_price,currentTime),
             )
 
             orderId = cursor.lastrowid
             print(orderId)
 
-            
             for itemId in entry["item"]:
                 print(itemId)
                 print(itemIdCommentDic[str(itemId)])
 
                 cursor.execute(
-                        """UPDATE cart
+                    """UPDATE cart
                         SET orderId = ?, orderComment = ?
                         WHERE itemId = ? AND orderId IS NULL;""",
-                        (orderId, itemIdCommentDic[str(itemId)], itemId  ),
-                    )
-            
+                    (orderId, itemIdCommentDic[str(itemId)], itemId),
+                )
+
             cnx.commit()
-            
+
             # for itemId, itemComment in itemIdCommentDic.items():
             #     cursor.execute(
             #         """UPDATE cart
@@ -708,16 +702,12 @@ def api_create_order():
             #         (orderId, itemComment, itemId),
             #     )
 
-
         # # create order
         # cursor.execute(
         #     "INSERT INTO createdOrder (userId, orderStatus, orderTotalPrice) VALUES (?, ?,?)",
         #     (userId, "created", orderTotalPrice),
         # )
         # orderId = cursor.lastrowid
-
-     
-
 
         return success_message()
 
@@ -751,6 +741,7 @@ def api_reject_order():
     finally:
         cnx.close()
 
+
 @app.route("/api/order/confirm", methods=["POST"])
 def api_confirm_order():
     try:
@@ -776,6 +767,7 @@ def api_confirm_order():
 
     finally:
         cnx.close()
+
 
 @app.route("/api/order/deliver", methods=["POST"])
 def api_deliver_order():
@@ -803,6 +795,7 @@ def api_deliver_order():
     finally:
         cnx.close()
 
+
 @app.route("/api/order/get/customer", methods=["GET"])
 def api_get_order_customer():
     token = request.cookies.get("token")
@@ -810,18 +803,18 @@ def api_get_order_customer():
         return error_messsage("Login first")
     try:
         _payload = jwt.decode(token, app.secret_key, algorithms="HS256")
-        userId = int(_payload["id"])
+        customerId = int(_payload["id"])
 
         cnx = get_db_connection()
         cursor = cnx.cursor()
 
         data = cursor.execute(
-            """SELECT  createdOrder.orderId,restaurantName,itemName,itemPrice, itemAmount,   createdOrder.orderStatus, itemId
+            """SELECT createdOrder.orderId,restaurantName,itemName,itemPrice, itemAmount, createdOrder.orderStatus, itemId, createdOrder.createTime,orderComment
             FROM cart 
             INNER JOIN createdOrder ON cart.orderId = createdOrder.orderId
-            WHERE createdOrder.userId=? AND cart.orderId IS NOT NULL
+            WHERE createdOrder.customerId=? AND cart.orderId IS NOT NULL
             ORDER BY createdOrder.orderId DESC""",
-            (userId,),
+            (customerId,),
         ).fetchall()
 
         json = {}
@@ -830,16 +823,22 @@ def api_get_order_customer():
                 json[d[0]] = {}
                 json[d[0]]["item"] = {}
                 json[d[0]]["orderStatus"] = d[5]
-            if len(json[d[0]]["item"])==0:
-                json[d[0]]["item"]={d[6]:{"restaurantName": d[1],"itemName": d[2], "itemAmount": d[4]}}
-            else:
-                if d[6] in  json[d[0]]["item"]:
-                    json[d[0]]["item"][d[6]]["itemAmount"]+=d[4]
-                else:
-                    json[d[0]]["item"][d[6]]={"restaurantName": d[1],"itemName": d[2], "itemAmount": d[4]}
+                json[d[0]]["createTime"] = d[7]
 
-            
-        
+            if len(json[d[0]]["item"]) == 0:
+                json[d[0]]["item"] = {
+                    d[6]: {"restaurantName": d[1], "itemName": d[2], "itemAmount": d[4], "orderComment":d[8]}
+                }
+            else:
+                if d[6] in json[d[0]]["item"]:
+                    json[d[0]]["item"][d[6]]["itemAmount"] += d[4]
+                else:
+                    json[d[0]]["item"][d[6]] = {
+                        "restaurantName": d[1],
+                        "itemName": d[2],
+                        "itemAmount": d[4],
+                         "orderComment":d[8],
+                    }
 
         return json
 
@@ -858,10 +857,10 @@ def api_get_order_restaurant(restaurantId):
         cursor = cnx.cursor()
 
         data = cursor.execute(
-            """SELECT  createdOrder.orderId, itemName, itemAmount,  createdOrder.orderStatus, user.name,orderComment,itemId
+            """SELECT  createdOrder.orderId, itemName, itemAmount,createdOrder.orderStatus, customer.name,orderComment,itemId, createdOrder.createTime
             FROM cart 
             INNER JOIN createdOrder ON cart.orderId = createdOrder.orderId
-            INNER JOIN user ON cart.userId = user.userId
+            INNER JOIN customer ON cart.customerId = customer.customerId
             WHERE cart.restaurantId=? AND cart.orderId IS NOT NULL
             ORDER BY createdOrder.orderId""",
             (restaurantId,),
@@ -875,17 +874,21 @@ def api_get_order_restaurant(restaurantId):
                 json[d[0]]["item"] = {}
                 json[d[0]]["orderStatus"] = d[3]
                 json[d[0]]["customerName"] = d[4]
+                json[d[0]]["createTime"] = d[7]
 
-            if len(json[d[0]]["item"])==0:
-                json[d[0]]["item"]={d[6]:{"itemName": d[1], "itemAmount": d[2],"orderComment":d[5]}}
+            if len(json[d[0]]["item"]) == 0:
+                json[d[0]]["item"] = {
+                    d[6]: {"itemName": d[1], "itemAmount": d[2], "orderComment": d[5]}
+                }
             else:
                 if d[6] in json[d[0]]["item"]:
-                    json[d[0]]["item"][d[6]]["itemAmount"]+=d[2]
+                    json[d[0]]["item"][d[6]]["itemAmount"] += d[2]
                 else:
-                    json[d[0]]["item"][d[6]]={"itemName": d[1], "itemAmount": d[2],"orderComment":d[5]}
-
-
-
+                    json[d[0]]["item"][d[6]] = {
+                        "itemName": d[1],
+                        "itemAmount": d[2],
+                        "orderComment": d[5],
+                    }
 
         return json
 
@@ -897,7 +900,7 @@ def api_get_order_restaurant(restaurantId):
         cnx.close()
 
 
-def combineCartForOrder(data,itemIdCommentDic):
+def combineCartForOrder(data, itemIdCommentDic):
     combined_data = {}
     for item_data in data:
         itemId = item_data["itemId"]
@@ -910,11 +913,13 @@ def combineCartForOrder(data,itemIdCommentDic):
 
         if restaurantId in combined_data:
             if itemId in combined_data[restaurantId]["item"]:
-                combined_data[restaurantId]['item'][itemId]["itemAmount"] += itemAmount
-                combined_data[restaurantId]['item'][itemId]["totalPrice"] += (
+                combined_data[restaurantId]["item"][itemId]["itemAmount"] += itemAmount
+                combined_data[restaurantId]["item"][itemId]["totalPrice"] += (
                     itemPrice * itemAmount
                 )
-                combined_data[restaurantId]['item'][itemId]["orderComment"]=itemIdCommentDic[str(itemId)]
+                combined_data[restaurantId]["item"][itemId][
+                    "orderComment"
+                ] = itemIdCommentDic[str(itemId)]
             else:
                 combined_data[restaurantId]["item"][itemId] = {
                     "itemName": itemName,
@@ -922,16 +927,18 @@ def combineCartForOrder(data,itemIdCommentDic):
                     "totalPrice": itemPrice * itemAmount,
                 }
         else:
-
-            combined_data[restaurantId] = {"restaurantId":restaurantId,"restaurantName": restaurantName, "item": {}}
+            combined_data[restaurantId] = {
+                "restaurantId": restaurantId,
+                "restaurantName": restaurantName,
+                "item": {},
+            }
             combined_data[restaurantId]["item"][itemId] = {
                 "itemName": itemName,
                 "itemAmount": itemAmount,
                 "totalPrice": itemPrice * itemAmount,
-                "orderComment":itemIdCommentDic[str(itemId)]
+                "orderComment": itemIdCommentDic[str(itemId)],
             }
 
-      
     combined_data_list = list(combined_data.values())
     print(combined_data_list)
     return combined_data_list
@@ -950,8 +957,8 @@ def listCartItems(data):
         if restaurantId in combined_data:
             if itemId in combined_data[restaurantId]["item"]:
                 print(combined_data[restaurantId])
-                combined_data[restaurantId]['item'][itemId]["itemAmount"] += itemAmount
-                combined_data[restaurantId]['item'][itemId]["totalPrice"] += (
+                combined_data[restaurantId]["item"][itemId]["itemAmount"] += itemAmount
+                combined_data[restaurantId]["item"][itemId]["totalPrice"] += (
                     itemPrice * itemAmount
                 )
             else:

@@ -22,8 +22,9 @@ document.addEventListener("DOMContentLoaded", async function (event) {
 });
 
 
-async function get_restaurant_list(userId) {
-  const url = "/api/restaurant/show/" + userId;
+async function get_restaurant_list(customerId) {
+  const url = "/api/restaurant/show/" + customerId;
+  console.log(url)
   let data = await fetch(url, {
     method: "GET",
     headers: {

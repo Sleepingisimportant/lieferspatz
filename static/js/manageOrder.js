@@ -142,6 +142,7 @@ async function getOrder() {
       itemCount++;
     }
   }
+  console.log(data);
 
   orderHistoryHtml = "";
 
@@ -157,18 +158,31 @@ async function getOrder() {
 // Function to generate HTML for each order
 function generateOrderHTML(orderId, orderData) {
   const items = Object.values(orderData["item"]);
+  console.log(orderData)
 
   orderHTML = `<div>
       <p class="bold body">Order Nr.: ${orderId}</p><br>
-      <p class="bold body">  Restaurant: ${items[0]["restaurantName"]}</p><br>`;
+      <p class="bold body">Order Status: </p><p class="body" style="color:red;">${orderData.orderStatus}</p><br>
+      <p class="bold body">  Order Time: </p><p class="body" style="color:grey;">${orderData.createTime}</p><br>
+      <p class="bold body">  Restaurant: </p><p class="body" style="color:grey;">${items[0]["restaurantName"]}</p><br>
+      <p class="bold body">  Order Item(s): </p><br>
+
+      `;
 
   items.forEach((item) => {
     orderHTML += `<p class=" body"> ${item["itemName"]} ${item["itemAmount"]} pc(s)</p>
-      <p class="bold body">Order Status: </p><p class="body" style="color:red;">${orderData.orderStatus}</p><br>`;
+    <p class="bold body" style="color:blue;">  Order Note: </p><p class="body" style="color:blue;">${item["orderComment"]}</p><br>
+    `;
   });
 
   orderHTML += `
-     
-    </div><br><br>`;
+    </div>
+    <br>
+    <hr style=" width: 100px; 
+    border: none;
+    margin: 0 0 0 0;
+    height: 1px;
+    background-color: grey;"> 
+    <br>`;
   return orderHTML;
 }
