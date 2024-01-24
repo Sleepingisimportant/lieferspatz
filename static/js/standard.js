@@ -146,7 +146,7 @@ function popup_customer_registration_box() {
       <input type="password" class="body" name="password" id="login-registration-box-password" placeholder="Create Password" required><br>
       <input type="text" class="body" name="zipCode" id="login-registration-box-zipCode" placeholder="Zip Code" required><br>
       <input type="text" class="body" name="address" id="login-registration-box-address" placeholder="Address" required><br>
-      <button id="registraion-box-button" type="submit"  class="btn">Comfirm</button>
+      <button id="registraion-box-button" type="submit"  class="btn">Confirm</button>
       <form>
     <div class="body">Already registered? <a onclick="popup_user_login_box()">Sign in</a></div>
     <div class="body">Restaurant owner? <a onclick="popup_restaurant_registration_box()">Create restaurant</a></div>
@@ -225,7 +225,7 @@ function popup_restaurant_registration_box() {
       <input type="text" class="body" name="description" id="login-registration-box-description-restaurant" placeholder="description" required><br>
       <input type="text" class="body" name="picture" id="login-registration-box-picture-restaurant" placeholder="picture" required><br>
 
-      <button id="registraion-box-button-restaurant" type="submit"  class="btn">Comfirm</button>
+      <button id="registraion-box-button-restaurant" type="submit"  class="btn">Confirm</button>
       <form>
     <div class="body">Already registered? <a onclick="popup_user_login_box()">Sign in</a></div>
     <div class="body">Normal customer? <a onclick="popup_customer_registration_box()">Create account</a></div>

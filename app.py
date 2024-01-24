@@ -1,9 +1,8 @@
 # zip code should be provided by the restaurant owner while account registration.
-
+# /usr/local/bin/python3.9 "/Users/alicewu/Documents/DuisburgUni/Semester_5/DB/Lieferspatz/app.py"
 
 import sqlite3
 from flask import *
-import requests
 import traceback
 
 
@@ -166,6 +165,8 @@ def api_show_allowed_restaurant(customerId):
 
         for row in zipCodeData:
             userZipCode = row[0]
+            print(f"userZipCode:{userZipCode}")
+
             data = cursor.execute(
                 """SELECT *
                 FROM restaurant
@@ -175,7 +176,10 @@ def api_show_allowed_restaurant(customerId):
             
 
             for d in data:
+
                 restaurantId = d[0]
+                print(f"restaurantId:{restaurantId}")
+
                 restaurantData = cursor.execute(
                     """
                     SELECT
@@ -197,6 +201,7 @@ def api_show_allowed_restaurant(customerId):
                 ).fetchall()
 
                 for row in restaurantData:
+                    print(row[0])
                     now = datetime.now()
                     current = now.strftime("%H:%M")
                     time_format = "%H:%M"
@@ -220,7 +225,6 @@ def api_show_allowed_restaurant(customerId):
 
         return json
 
-        return json
 
     except sqlite3.Error as e:
         print(f"SQLite error: {str(e)}")
@@ -671,7 +675,7 @@ def api_create_order():
             order_total_price = sum(item_total_prices)
             restaurantId = entry["restaurantId"]
 
-            currentTime = datetime.now().strftime("%H:%M:%S")
+            currentTime = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
             cursor.execute(
                 "INSERT INTO createdOrder (customerId, restaurantId, orderStatus, orderTotalPrice, createTime) VALUES (?,?,?,?,?)",
@@ -809,7 +813,7 @@ def api_get_order_customer():
         cursor = cnx.cursor()
 
         data = cursor.execute(
-            """SELECT createdOrder.orderId,restaurantName,itemName,itemPrice, itemAmount, createdOrder.orderStatus, itemId, createdOrder.createTime,orderComment
+            """SELECT createdOrder.orderId,restaurantName,itemName,itemPrice, itemAmount, createdOrder.orderStatus, itemId, createdOrder.createTime,orderComment, createdOrder.orderTotalPrice
             FROM cart 
             INNER JOIN createdOrder ON cart.orderId = createdOrder.orderId
             WHERE createdOrder.customerId=? AND cart.orderId IS NOT NULL
@@ -824,6 +828,7 @@ def api_get_order_customer():
                 json[d[0]]["item"] = {}
                 json[d[0]]["orderStatus"] = d[5]
                 json[d[0]]["createTime"] = d[7]
+                json[d[0]]["orderTotalPrice"] = d[9]
 
             if len(json[d[0]]["item"]) == 0:
                 json[d[0]]["item"] = {
@@ -857,7 +862,7 @@ def api_get_order_restaurant(restaurantId):
         cursor = cnx.cursor()
 
         data = cursor.execute(
-            """SELECT  createdOrder.orderId, itemName, itemAmount,createdOrder.orderStatus, customer.name,orderComment,itemId, createdOrder.createTime
+            """SELECT  createdOrder.orderId, itemName, itemAmount,createdOrder.orderStatus, customer.name,orderComment,itemId, createdOrder.createTime, createdOrder.orderTotalPrice
             FROM cart 
             INNER JOIN createdOrder ON cart.orderId = createdOrder.orderId
             INNER JOIN customer ON cart.customerId = customer.customerId
@@ -875,6 +880,7 @@ def api_get_order_restaurant(restaurantId):
                 json[d[0]]["orderStatus"] = d[3]
                 json[d[0]]["customerName"] = d[4]
                 json[d[0]]["createTime"] = d[7]
+                json[d[0]]["orderTotalPrice"] = d[8]
 
             if len(json[d[0]]["item"]) == 0:
                 json[d[0]]["item"] = {

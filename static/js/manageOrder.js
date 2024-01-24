@@ -165,6 +165,7 @@ function generateOrderHTML(orderId, orderData) {
       <p class="bold body">Order Status: </p><p class="body" style="color:red;">${orderData.orderStatus}</p><br>
       <p class="bold body">  Order Time: </p><p class="body" style="color:grey;">${orderData.createTime}</p><br>
       <p class="bold body">  Restaurant: </p><p class="body" style="color:grey;">${items[0]["restaurantName"]}</p><br>
+      <p class="bold body">  Total Price: </p><p class="body" style="color:grey;">${orderData.orderTotalPrice} €</p><br>
       <p class="bold body">  Order Item(s): </p><br>
 
       `;

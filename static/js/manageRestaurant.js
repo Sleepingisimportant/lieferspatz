@@ -169,6 +169,7 @@ function generateOrderHTML(orderId, orderData) {
   <p class="bold body" id=${orderId} }>Order Nr.: </p><p class=" body" style="color:blue;">${orderId}</p><br>
   <p class="bold body"  }>Order Time: </p><p class=" body" style="color:grey;">${orderData.createTime}</p><br>
   <p class="bold body">Customer Name: </p><p class="body">${orderData.customerName}</p><br>
+  <p class="bold body">Total Price: </p><p class="body">${orderData.orderTotalPrice} €</p><br>
     <p class="bold body">Order Item(s):</p><br>`;
 
   items = Object.values(orderData.item);
